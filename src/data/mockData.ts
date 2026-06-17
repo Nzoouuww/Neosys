@@ -482,6 +482,49 @@ export const projets: Projet[] = [
       { id: "v2", date: "2025-09-30", montant: 4000, devise: "EUR", statut: "À venir", libelle: "Deuxième versement (33%)" },
       { id: "v3", date: "2026-08-31", montant: 2000, devise: "EUR", statut: "À venir", libelle: "Solde (17%)" },
     ],
+    milieu:
+      "Nosy-Be est une île du nord-ouest de Madagascar, à forte activité touristique mais marquée par de fortes inégalités. Les quartiers périphériques concentrent une population vulnérable, avec un fort taux de déscolarisation et de malnutrition infantile.",
+    historiqueRecommandations:
+      "Partenariat avec la LLB depuis 2009. Recommandation du CPD : renforcer le suivi nutritionnel et impliquer les parents dans la gestion de la cantine.",
+    objectifs:
+      "Contribuer à une amélioration durable du bien-être, de la scolarisation et de la protection des enfants et jeunes vulnérables de Nosy-Be, en luttant contre la malnutrition, le travail des enfants et les risques d'exploitation sexuelle.",
+    activites:
+      "Préparation de 100 repas par jour, 5 fois par semaine, 10 mois par an ; transport des repas quotidiens sur 3 centres ; comité de gestion des parents ; club biblique hebdomadaire et sensibilisations ; centre d'écoute ; suivi et évaluation.",
+    classementCocodev: "Santé, hygiène, nutrition",
+    classementOcde: "Nutrition de base",
+    classementPnud: "Santé",
+    classementSel: "Soutien alimentaire",
+    composanteAutonome: true,
+    debutDesFinancement: true,
+    dateDebutRealisation: "2024-09-01",
+    dateFinRealisation: "2026-08-31",
+    moyensMateriels:
+      "1 centre de formation avec 1 réfectoire, 2 bungalows, 1 grande maison d'accueil, salle de centre d'écoute, élevage de poules ; 2 centres pour clubs bibliques.",
+    moyensHumains:
+      "1 responsable de projet, 2 cuisinières, 1 animateur communautaire, 15 bénévoles.",
+    nbVersementsPlanifies: 3,
+    nbAutresBailleurs: 0,
+    apportPartenaire: 1667,
+    apportSollicite: 21232,
+    apportAutresBailleurs: 0,
+    deviseLocale: "MGA",
+    decisionCpd: "Accepté",
+    dateSoumissionCpd: "2023-12-06",
+    acceptationSousCondition: false,
+    conditionLevee: false,
+    descriptionCondition: "",
+    acceptationSousRecommandation: true,
+    descriptionRecommandation:
+      "Renforcer le volet nutritionnel et fournir un rapport intermédiaire semestriel.",
+    montantAlloueCpd: 21232,
+    versementRecurrent: true,
+    nbVersementsAnnuel: 4,
+    correspondances: [
+      { id: "c1", date: "2024-05-12", type: "E-mail", objet: "Envoi du dossier d'instruction complété", auteur: "Coordinateur SEL" },
+      { id: "c2", date: "2024-06-03", type: "Courrier", objet: "Notification d'acceptation du projet par la CPD", auteur: "Secrétariat CPD" },
+      { id: "c3", date: "2024-09-20", type: "E-mail", objet: "Accusé de réception du 1er versement", auteur: "LLB Madagascar" },
+      { id: "c4", date: "2025-03-10", type: "Réunion", objet: "Point d'avancement à mi-parcours (visio)", auteur: "Chargé de suivi" },
+    ],
   },
   {
     id: "prj-dg2134",

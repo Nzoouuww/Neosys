@@ -121,6 +121,55 @@ export interface Projet {
   jalons: Jalon[];
   decisions: Decision[];
   versements: Versement[];
+
+  // --- Onglet Contrôle ---
+  milieu?: string; // Le milieu (géographique, social, politique, son histoire)
+  historiqueRecommandations?: string;
+
+  // --- Onglet Description ---
+  objectifs?: string;
+  activites?: string;
+  classementCocodev?: string;
+  classementOcde?: string;
+  classementPnud?: string;
+  classementSel?: string;
+  composanteAutonome?: boolean;
+  debutDesFinancement?: boolean;
+  dateDebutRealisation?: string;
+  dateFinRealisation?: string;
+
+  // --- Onglet Moyens ---
+  moyensMateriels?: string;
+  moyensHumains?: string;
+  nbVersementsPlanifies?: number;
+  nbAutresBailleurs?: number;
+  apportPartenaire?: number;
+  apportSollicite?: number;
+  apportAutresBailleurs?: number;
+  deviseLocale?: string;
+
+  // --- Onglet Décisions ---
+  decisionCpd?: "En instruction" | "Accepté" | "Refusé";
+  dateSoumissionCpd?: string;
+  acceptationSousCondition?: boolean;
+  conditionLevee?: boolean;
+  descriptionCondition?: string;
+  acceptationSousRecommandation?: boolean;
+  descriptionRecommandation?: string;
+  montantAlloueCpd?: number;
+  versementRecurrent?: boolean;
+  nbVersementsAnnuel?: number;
+
+  // --- Onglet Correspondance ---
+  correspondances?: Correspondance[];
+}
+
+export interface Correspondance {
+  id: string;
+  date: string;
+  type: "Courrier" | "E-mail" | "Appel" | "Réunion";
+  objet: string;
+  auteur: string;
 }
 
 export type StatutDocument = "Brouillon" | "Généré" | "Validé" | "Envoyé";
