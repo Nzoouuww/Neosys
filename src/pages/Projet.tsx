@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import {
   Search,
@@ -20,6 +20,7 @@ import {
   X,
   Pencil,
   Minus,
+  RotateCcw,
 } from "lucide-react";
 import { Badge } from "../components/Badge";
 import { Accordion } from "../components/Accordion";
@@ -50,19 +51,55 @@ type TopTab = (typeof TOP_TABS)[number];
 
 const uid = () => Math.random().toString(36).slice(2, 9);
 
+const STORAGE_KEY = "neosys.projets.v1";
+
+function loadProjets(): ProjetType[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw) as ProjetType[];
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch {
+    // localStorage indisponible ou JSON invalide : on repart des données d'exemple.
+  }
+  return projetsSeed.map((p) => ({ ...p }));
+}
+
 export default function Projet() {
-  // Copie éditable des projets : tout est modifiable et persiste pendant la session.
-  const [projets, setProjets] = useState<ProjetType[]>(() => projetsSeed.map((p) => ({ ...p })));
+  // Copie éditable des projets : sauvegardée dans le navigateur (localStorage),
+  // les saisies survivent donc à la fermeture/réouverture de la page.
+  const [projets, setProjets] = useState<ProjetType[]>(loadProjets);
   const [orgId, setOrgId] = useState(organisations[0]?.id ?? "");
   const [projetId, setProjetId] = useState<string>("");
   const [tab, setTab] = useState<TopTab>("Org. porteuse");
   const [savedAt, setSavedAt] = useState<string | null>(null);
+
+  // Persiste automatiquement chaque modification dans le navigateur.
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(projets));
+    } catch {
+      // quota dépassé ou stockage bloqué : ignoré (les données restent en mémoire).
+    }
+  }, [projets]);
 
   const org = getOrganisation(orgId) ?? organisations[0];
   const projet = projets.find((p) => p.id === projetId);
 
   const updateProjet = (id: string, patch: Partial<ProjetType>) =>
     setProjets((list) => list.map((p) => (p.id === id ? { ...p, ...patch } : p)));
+
+  const reinitialiser = () => {
+    if (!window.confirm("Réinitialiser toutes les données aux valeurs d'exemple ? Vos saisies enregistrées dans ce navigateur seront effacées.")) return;
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // ignoré
+    }
+    setProjets(projetsSeed.map((p) => ({ ...p })));
+    setSavedAt(null);
+  };
 
   const selectOrg = (id: string) => {
     setOrgId(id);
@@ -136,6 +173,7 @@ export default function Projet() {
             onSave={() =>
               setSavedAt(new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }))
             }
+            onReset={reinitialiser}
             set={(patch) => updateProjet(projet.id, patch)}
             onOpenProjet={openProjet}
           />
@@ -456,6 +494,7 @@ function ProjetDetail({
   projets,
   set,
   onSave,
+  onReset,
   savedAt,
   onOpenProjet,
 }: {
@@ -464,6 +503,7 @@ function ProjetDetail({
   projets: ProjetType[];
   set: Setter;
   onSave: () => void;
+  onReset: () => void;
   savedAt: string | null;
   onOpenProjet: (id: string) => void;
 }) {
@@ -482,7 +522,13 @@ function ProjetDetail({
             <Badge>{projet.etape}</Badge>
           </div>
           <div className="flex items-center gap-2">
+            <span className="hidden items-center gap-1 text-xs font-medium text-ink-400 sm:flex">
+              <Save className="h-3.5 w-3.5" /> Sauvegarde auto dans ce navigateur
+            </span>
             {savedAt && <span className="text-xs font-medium text-emerald-600">Enregistré à {savedAt}</span>}
+            <button className="btn-outline" onClick={onReset} title="Revenir aux données d'exemple">
+              <RotateCcw className="h-4 w-4" /> Réinitialiser
+            </button>
             <Link to={`/projets/${projet.id}`} className="btn-outline">
               <ExternalLink className="h-4 w-4" /> Vue détail
             </Link>
