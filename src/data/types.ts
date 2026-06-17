@@ -163,10 +163,21 @@ export interface Projet {
   // --- Onglet Correspondance ---
   correspondances?: Correspondance[];
 
+  // --- Onglet Décisions : suivi du protocole ---
+  protocole?: EtapeProtocole[];
+
   // --- Onglet Suivi ---
   suiviEvenements?: SuiviEvenement[];
   projetTermine?: boolean;
   dateDebutRealisee?: string;
+}
+
+export interface EtapeProtocole {
+  id: string;
+  label: string;
+  date?: string;
+  // Si vrai, la date est affichée dans la fiche CPD générée (onglet Documents).
+  afficherCpd: boolean;
 }
 
 export interface Correspondance {

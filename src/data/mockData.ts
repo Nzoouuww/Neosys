@@ -525,6 +525,16 @@ export const projets: Projet[] = [
       { id: "c3", date: "2024-09-20", type: "E-mail", objet: "Accusé de réception du 1er versement", auteur: "LLB Madagascar" },
       { id: "c4", date: "2025-03-10", type: "Réunion", objet: "Point d'avancement à mi-parcours (visio)", auteur: "Chargé de suivi" },
     ],
+    protocole: [
+      { id: "pr1", label: "Rapport intermédiaire", date: "2025-06-30", afficherCpd: true },
+      { id: "pr2", label: "Rapport final", date: "", afficherCpd: false },
+      { id: "pr3", label: "Envoi de la décision CPD", date: "2024-06-03", afficherCpd: true },
+      { id: "pr4", label: "Réception du protocole signé (OP)", date: "2024-07-15", afficherCpd: false },
+      { id: "pr5", label: "Envoi du protocole (proposition)", date: "2024-06-20", afficherCpd: true },
+      { id: "pr6", label: "Signature du protocole (SEL)", date: "2024-06-25", afficherCpd: false },
+      { id: "pr7", label: "Confirmation du protocole OP", date: "", afficherCpd: false },
+      { id: "pr8", label: "Confirmer coordonnées bancaires", date: "2024-08-01", afficherCpd: false },
+    ],
     suiviEvenements: [
       { id: "se1", date: "2026-01-22", type: "Versement", infos: "7916.00 EUR", commentaire: "5000 euros trimestriel + 2920 euros ajout ponctuel" },
       { id: "se2", date: "2026-03-13", type: "Versement", infos: "5395.00 EUR", commentaire: "" },

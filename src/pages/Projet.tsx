@@ -17,6 +17,7 @@ import {
   FileBarChart,
   FileSignature,
   Info as InfoIcon,
+  X,
 } from "lucide-react";
 import { Badge } from "../components/Badge";
 import { Accordion } from "../components/Accordion";
@@ -29,6 +30,7 @@ import type {
   Correspondance,
   SuiviEvenement,
   TypeEvenementSuivi,
+  EtapeProtocole,
 } from "../data/types";
 
 const TOP_TABS = [
@@ -508,7 +510,7 @@ function ProjetDetail({
         {sub === "Description" && <DescriptionTab projet={projet} set={set} />}
         {sub === "Moyens" && <MoyensTab projet={projet} set={set} />}
         {sub === "Décisions" && <DecisionsTab projet={projet} set={set} />}
-        {sub === "Documents" && <DocumentsTab />}
+        {sub === "Documents" && <DocumentsTab org={org} projet={projet} />}
         {sub === "Suivi" && <SuiviTab projet={projet} set={set} />}
         {sub === "Correspondance" && <CorrespondanceTab projet={projet} set={set} />}
       </div>
@@ -781,19 +783,23 @@ function MoyensTab({ projet, set }: { projet: ProjetType; set: Setter }) {
 }
 
 /* ---------- Décisions ---------- */
+const DEFAULT_PROTOCOLE: EtapeProtocole[] = [
+  { id: "pr1", label: "Rapport intermédiaire", date: "", afficherCpd: false },
+  { id: "pr2", label: "Rapport final", date: "", afficherCpd: false },
+  { id: "pr3", label: "Envoi de la décision CPD", date: "", afficherCpd: false },
+  { id: "pr4", label: "Réception du protocole signé (OP)", date: "", afficherCpd: false },
+  { id: "pr5", label: "Envoi du protocole (proposition)", date: "", afficherCpd: false },
+  { id: "pr6", label: "Signature du protocole (SEL)", date: "", afficherCpd: false },
+  { id: "pr7", label: "Confirmation du protocole OP", date: "", afficherCpd: false },
+  { id: "pr8", label: "Confirmer coordonnées bancaires", date: "", afficherCpd: false },
+];
+
 function DecisionsTab({ projet, set }: { projet: ProjetType; set: Setter }) {
   const dev = projet.devise || "EUR";
   const decision = projet.decisionCpd ?? "En instruction";
-  const protocoles = [
-    "Rapport intermédiaire",
-    "Rapport final",
-    "Envoi de la décision CPD",
-    "Réception du protocole signé (OP)",
-    "Envoi du protocole (proposition)",
-    "Signature du protocole (SEL)",
-    "Confirmation du protocole OP",
-    "Confirmer coordonnées bancaires",
-  ];
+  const protocole = projet.protocole ?? DEFAULT_PROTOCOLE;
+  const updateProto = (id: string, patch: Partial<EtapeProtocole>) =>
+    set({ protocole: protocole.map((p) => (p.id === id ? { ...p, ...patch } : p)) });
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
@@ -840,13 +846,32 @@ function DecisionsTab({ projet, set }: { projet: ProjetType; set: Setter }) {
       </div>
 
       <div className="card p-5">
-        <p className="mb-3 text-sm font-semibold text-ink-700">Suivi du protocole</p>
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <p className="text-sm font-semibold text-ink-700">Suivi du protocole</p>
+          <p className="text-xs text-ink-400">
+            Cochez « Afficher sur la fiche CPD » pour faire apparaître la date dans le document généré (onglet Documents).
+          </p>
+        </div>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {protocoles.map((p) => (
-            <label key={p} className="flex items-center gap-2 rounded-lg bg-ink-50 px-3 py-2 text-sm text-ink-700">
-              <input type="checkbox" className="h-4 w-4 rounded border-ink-300" />
-              {p}
-            </label>
+          {protocole.map((p) => (
+            <div key={p.id} className="rounded-xl border border-ink-200 bg-ink-50 p-3">
+              <p className="mb-2 text-sm font-semibold text-ink-700">{p.label}</p>
+              <input
+                type="date"
+                className="input bg-white"
+                value={p.date ?? ""}
+                onChange={(e) => updateProto(p.id, { date: e.target.value })}
+              />
+              <label className="mt-2 flex items-center gap-2 text-xs font-medium text-ink-600">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 rounded border-ink-300"
+                  checked={p.afficherCpd}
+                  onChange={(e) => updateProto(p.id, { afficherCpd: e.target.checked })}
+                />
+                Afficher sur la fiche CPD
+              </label>
+            </div>
           ))}
         </div>
       </div>
@@ -855,30 +880,118 @@ function DecisionsTab({ projet, set }: { projet: ProjetType; set: Setter }) {
 }
 
 /* ---------- Documents ---------- */
-function DocumentsTab() {
+function DocumentsTab({ org, projet }: { org: Organisation; projet: ProjetType }) {
+  const [preview, setPreview] = useState<string | null>(null);
   const boutons = [
-    { label: "Détails et commentaires", icon: FileText },
-    { label: "Prévisualisation Fiche projet (CPD)", icon: FileBarChart },
-    { label: "Informations financières", icon: FileBarChart },
-    { label: "Prévisualisation Protocole d'accord", icon: FileSignature },
-    { label: "Prévisualisation Protocole d'accord 2", icon: FileSignature },
+    { id: "details", label: "Détails et commentaires", icon: FileText },
+    { id: "cpd", label: "Prévisualisation Fiche projet (CPD)", icon: FileBarChart },
+    { id: "finance", label: "Informations financières", icon: FileBarChart },
+    { id: "protocole", label: "Prévisualisation Protocole d'accord", icon: FileSignature },
+    { id: "protocole2", label: "Prévisualisation Protocole d'accord 2", icon: FileSignature },
   ];
   return (
-    <div className="card p-5">
-      <p className="mb-4 text-sm font-semibold text-ink-700">Génération de documents pré-remplis</p>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {boutons.map((b) => (
-          <button
-            key={b.label}
-            className="flex items-center gap-3 rounded-xl border border-ink-200 bg-white px-4 py-4 text-left text-sm font-semibold text-ink-700 shadow-card transition-colors hover:border-brand-400 hover:bg-brand-50"
-          >
-            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-100 text-brand-700">
-              <b.icon className="h-5 w-5" />
-            </span>
-            {b.label}
-          </button>
-        ))}
+    <div className="space-y-4">
+      <div className="card p-5">
+        <p className="mb-4 text-sm font-semibold text-ink-700">Génération de documents pré-remplis</p>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {boutons.map((b) => (
+            <button
+              key={b.id}
+              onClick={() => setPreview(b.id)}
+              className={`flex items-center gap-3 rounded-xl border px-4 py-4 text-left text-sm font-semibold shadow-card transition-colors ${
+                preview === b.id
+                  ? "border-brand-500 bg-brand-50 text-brand-800"
+                  : "border-ink-200 bg-white text-ink-700 hover:border-brand-400 hover:bg-brand-50"
+              }`}
+            >
+              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-100 text-brand-700">
+                <b.icon className="h-5 w-5" />
+              </span>
+              {b.label}
+            </button>
+          ))}
+        </div>
       </div>
+
+      {preview === "cpd" && <FicheCpdPreview org={org} projet={projet} onClose={() => setPreview(null)} />}
+      {preview && preview !== "cpd" && (
+        <div className="card flex items-center justify-between p-5 text-sm text-ink-500">
+          <span>Aperçu « {boutons.find((b) => b.id === preview)?.label} » — gabarit à définir avec votre équipe.</span>
+          <button className="btn-outline" onClick={() => setPreview(null)}>Fermer</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FicheCpdPreview({
+  org,
+  projet,
+  onClose,
+}: {
+  org: Organisation;
+  projet: ProjetType;
+  onClose: () => void;
+}) {
+  const datesCpd = (projet.protocole ?? []).filter((p) => p.afficherCpd && p.date);
+  const dev = projet.devise || "EUR";
+  return (
+    <div className="card overflow-hidden">
+      <div className="flex items-center justify-between border-b border-ink-200 bg-ink-50 px-5 py-3">
+        <span className="flex items-center gap-2 text-sm font-semibold text-ink-800">
+          <FileBarChart className="h-4 w-4 text-brand-600" /> Fiche projet (CPD) — aperçu
+        </span>
+        <button className="btn-outline" onClick={onClose}><X className="h-4 w-4" /> Fermer</button>
+      </div>
+      <div className="mx-auto max-w-3xl space-y-5 p-8">
+        <div className="border-b border-ink-200 pb-4 text-center">
+          <p className="text-xs font-bold uppercase tracking-widest text-ink-400">Fiche projet — Commission Partenariat & Développement</p>
+          <h3 className="mt-1 text-xl font-extrabold text-ink-900">{projet.titre}</h3>
+          <p className="mt-1 font-mono text-sm text-ink-500">{org.paysIso} · {org.sigle} · {projet.code}</p>
+        </div>
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <FicheLine label="Organisation porteuse" value={org.libelle} />
+          <FicheLine label="Pays" value={projet.pays} />
+          <FicheLine label="Ville / région" value={`${projet.ville}${projet.region ? `, ${projet.region}` : ""}`} />
+          <FicheLine label="Coordinateur" value={projet.coordinateur} />
+          <FicheLine label="Bénéficiaires" value={projet.nbBeneficiaires.toLocaleString("fr-FR")} />
+          <FicheLine label="Montant alloué (CPD)" value={formatMontant(projet.montantAlloueCpd ?? projet.montantAlloue, dev)} />
+        </div>
+        {projet.objectifs && (
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wide text-ink-400">Objectifs</p>
+            <p className="mt-1 text-sm leading-relaxed text-ink-700">{projet.objectifs}</p>
+          </div>
+        )}
+        <div>
+          <p className="text-xs font-bold uppercase tracking-wide text-ink-400">Dates clés du protocole</p>
+          {datesCpd.length === 0 ? (
+            <p className="mt-1 text-sm italic text-ink-400">
+              Aucune date sélectionnée. Cochez « Afficher sur la fiche CPD » dans l'onglet Décisions.
+            </p>
+          ) : (
+            <table className="mt-2 w-full text-sm">
+              <tbody className="divide-y divide-ink-100">
+                {datesCpd.map((p) => (
+                  <tr key={p.id}>
+                    <td className="py-1.5 text-ink-600">{p.label}</td>
+                    <td className="py-1.5 text-right font-semibold tabular-nums text-ink-800">{formatDate(p.date!)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FicheLine({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-xs font-bold uppercase tracking-wide text-ink-400">{label}</p>
+      <p className="mt-0.5 font-semibold text-ink-800">{value}</p>
     </div>
   );
 }
