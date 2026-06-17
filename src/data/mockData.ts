@@ -519,6 +519,16 @@ export const projets: Projet[] = [
     montantAlloueCpd: 21232,
     versementRecurrent: true,
     nbVersementsAnnuel: 4,
+    versementsPlanifies: [
+      { id: "vp1", date: "2026-09-15", montant: 1122, taux: 4800, frais: 0, deviseBase: "Euro", deviseCible: "Ariary malgache" },
+      { id: "vp2", date: "2026-12-15", montant: 5000, taux: 4800, frais: 0, deviseBase: "Euro", deviseCible: "Ariary malgache" },
+    ],
+    conditionProchainVersement: "Réception du rapport intermédiaire et des justificatifs de dépenses du trimestre précédent.",
+    montantsDetails: {
+      apportPartenaire: { taux: 4800, frais: 0, deviseBase: "Euro", deviseCible: "Ariary malgache" },
+      apportSollicite: { taux: 4800, frais: 0, deviseBase: "Euro", deviseCible: "Ariary malgache" },
+      montantAlloueCpd: { taux: 4800, frais: 0, deviseBase: "Euro", deviseCible: "Ariary malgache" },
+    },
     correspondances: [
       { id: "c1", date: "2024-05-12", type: "E-mail", objet: "Envoi du dossier d'instruction complété", auteur: "Coordinateur SEL" },
       { id: "c2", date: "2024-06-03", type: "Courrier", objet: "Notification d'acceptation du projet par la CPD", auteur: "Secrétariat CPD" },

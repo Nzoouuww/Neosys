@@ -159,6 +159,11 @@ export interface Projet {
   montantAlloueCpd?: number;
   versementRecurrent?: boolean;
   nbVersementsAnnuel?: number;
+  versementsPlanifies?: VersementPlanifie[];
+  conditionProchainVersement?: string;
+
+  // Détails de change associés à certains montants (clé = nom du champ).
+  montantsDetails?: Record<string, MontantDetail>;
 
   // --- Onglet Correspondance ---
   correspondances?: Correspondance[];
@@ -170,6 +175,25 @@ export interface Projet {
   suiviEvenements?: SuiviEvenement[];
   projetTermine?: boolean;
   dateDebutRealisee?: string;
+}
+
+// Détail de change d'un montant (fenêtre « Modification d'un montant »).
+export interface MontantDetail {
+  date?: string;
+  taux?: number; // cours de change planifié/choisi/effectif
+  frais?: number;
+  deviseBase?: string;
+  deviseCible?: string;
+}
+
+export interface VersementPlanifie {
+  id: string;
+  date: string;
+  montant: number;
+  taux?: number;
+  frais?: number;
+  deviseBase?: string;
+  deviseCible?: string;
 }
 
 export interface EtapeProtocole {

@@ -18,6 +18,8 @@ import {
   FileSignature,
   Info as InfoIcon,
   X,
+  Pencil,
+  Minus,
 } from "lucide-react";
 import { Badge } from "../components/Badge";
 import { Accordion } from "../components/Accordion";
@@ -31,6 +33,8 @@ import type {
   SuiviEvenement,
   TypeEvenementSuivi,
   EtapeProtocole,
+  MontantDetail,
+  VersementPlanifie,
 } from "../data/types";
 
 const TOP_TABS = [
@@ -654,6 +658,146 @@ function CheckRow({
   );
 }
 
+/* ---------- Éditeur de montant (taux de change) ---------- */
+const DEVISES = [
+  "Euro",
+  "Ariary malgache",
+  "Franc CFA (XOF)",
+  "Franc CFA (XAF)",
+  "Dollar US (USD)",
+  "Franc congolais (CDF)",
+  "Gourde haïtienne (HTG)",
+  "Naira (NGN)",
+  "Peso philippin (PHP)",
+  "Couronne suédoise (SEK)",
+  "Livre libanaise (LBP)",
+  "Livre sterling (GBP)",
+];
+
+const fmtNb = (n: number) =>
+  n.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+const detailFor = (projet: ProjetType, key: string): MontantDetail | undefined =>
+  projet.montantsDetails?.[key];
+
+const withDetail = (projet: ProjetType, key: string, d: MontantDetail): Record<string, MontantDetail> => ({
+  ...(projet.montantsDetails ?? {}),
+  [key]: d,
+});
+
+function MontantEditor({
+  titre,
+  value,
+  detail,
+  deviseCibleDefaut,
+  onSave,
+  onClose,
+}: {
+  titre: string;
+  value: number | undefined;
+  detail: MontantDetail | undefined;
+  deviseCibleDefaut?: string;
+  onSave: (value: number | undefined, detail: MontantDetail) => void;
+  onClose: () => void;
+}) {
+  const [montant, setMontant] = useState<number | undefined>(value);
+  const [date, setDate] = useState(detail?.date ?? "");
+  const [taux, setTaux] = useState<number | undefined>(detail?.taux);
+  const [frais, setFrais] = useState<number | undefined>(detail?.frais);
+  const [deviseBase, setDeviseBase] = useState(detail?.deviseBase ?? "Euro");
+  const [deviseCible, setDeviseCible] = useState(detail?.deviseCible ?? deviseCibleDefaut ?? "Ariary malgache");
+  const converti = (montant ?? 0) * (taux ?? 0) - (frais ?? 0);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink-900/40 p-4" onClick={onClose}>
+      <div className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between border-b border-ink-200 bg-ink-50 px-5 py-3">
+          <span className="text-sm font-bold text-ink-800">Modification d'un montant</span>
+          <button onClick={onClose} className="rounded p-1 text-ink-400 hover:bg-ink-100 hover:text-ink-700">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        <div className="space-y-3 p-5">
+          <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">{titre}</p>
+          <NumField label="Montant" value={montant} onChange={setMontant} />
+          <div>
+            <p className="label">Date</p>
+            <input type="date" className="input" value={date} onChange={(e) => setDate(e.target.value)} />
+          </div>
+          <NumField label="Cours de change planifié, choisi ou effectif" value={taux} onChange={setTaux} />
+          <NumField label="Frais" value={frais} onChange={setFrais} />
+          <div className="grid grid-cols-2 gap-3">
+            <SelectField label="Devise de base" value={deviseBase} options={DEVISES} onChange={setDeviseBase} />
+            <SelectField label="Devise cible" value={deviseCible} options={DEVISES} onChange={setDeviseCible} />
+          </div>
+          <div className="rounded-lg bg-brand-50 px-3 py-2 text-sm text-brand-800 ring-1 ring-inset ring-brand-600/20">
+            <span className="font-semibold">{fmtNb(montant ?? 0)}</span> {deviseBase} × {fmtNb(taux ?? 0)}
+            {frais ? ` − ${fmtNb(frais)} frais` : ""} ={" "}
+            <span className="font-bold">{fmtNb(converti)}</span> {deviseCible}
+          </div>
+        </div>
+        <div className="flex justify-end gap-2 border-t border-ink-200 bg-ink-50 px-5 py-3">
+          <button className="btn-outline" onClick={onClose}>Fermer</button>
+          <button
+            className="btn-primary"
+            onClick={() => onSave(montant, { date, taux, frais, deviseBase, deviseCible })}
+          >
+            <Save className="h-4 w-4" /> Enregistrer les modifications
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MontantField({
+  label,
+  value,
+  detail,
+  deviseCibleDefaut,
+  onChange,
+}: {
+  label: string;
+  value: number | undefined;
+  detail: MontantDetail | undefined;
+  deviseCibleDefaut?: string;
+  onChange: (value: number | undefined, detail: MontantDetail) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const base = detail?.deviseBase ?? "EUR";
+  return (
+    <div>
+      {label && <p className="label">{label}</p>}
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="input flex items-center justify-between text-left hover:border-brand-400"
+      >
+        <span className="font-semibold text-ink-800">
+          {value != null ? `${fmtNb(value)} ${base}` : "—"}
+        </span>
+        <span className="flex items-center gap-1.5 text-xs text-ink-400">
+          {detail?.taux ? `× ${fmtNb(detail.taux)}` : ""}
+          <Pencil className="h-3.5 w-3.5" />
+        </span>
+      </button>
+      {open && (
+        <MontantEditor
+          titre={label}
+          value={value}
+          detail={detail}
+          deviseCibleDefaut={deviseCibleDefaut}
+          onClose={() => setOpen(false)}
+          onSave={(v, d) => {
+            onChange(v, d);
+            setOpen(false);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
 /* ---------- Contrôle ---------- */
 function ControleTab({ projet, set }: { projet: ProjetType; set: Setter }) {
   return (
@@ -769,10 +913,28 @@ function MoyensTab({ projet, set }: { projet: ProjetType; set: Setter }) {
           <NumField label="Nb versements planifiés" value={projet.nbVersementsPlanifies} onChange={(v) => set({ nbVersementsPlanifies: v })} />
           <NumField label="Nb d'autres bailleurs" value={projet.nbAutresBailleurs} onChange={(v) => set({ nbAutresBailleurs: v })} />
         </div>
-        <NumField label={`Apport du partenaire (${dev})`} value={projet.apportPartenaire} onChange={(v) => set({ apportPartenaire: v })} />
-        <NumField label={`Apport sollicité (SEL) (${dev})`} value={projet.apportSollicite} onChange={(v) => set({ apportSollicite: v })} />
-        <NumField label={`Apport autres bailleurs (${dev})`} value={projet.apportAutresBailleurs} onChange={(v) => set({ apportAutresBailleurs: v })} />
-        <TextField label="Devise locale" value={projet.deviseLocale ?? ""} onChange={(v) => set({ deviseLocale: v })} className="input max-w-[120px]" />
+        <MontantField
+          label="Apport du partenaire"
+          value={projet.apportPartenaire}
+          detail={detailFor(projet, "apportPartenaire")}
+          deviseCibleDefaut={projet.deviseLocale}
+          onChange={(v, d) => set({ apportPartenaire: v, montantsDetails: withDetail(projet, "apportPartenaire", d) })}
+        />
+        <MontantField
+          label="Apport sollicité (SEL)"
+          value={projet.apportSollicite}
+          detail={detailFor(projet, "apportSollicite")}
+          deviseCibleDefaut={projet.deviseLocale}
+          onChange={(v, d) => set({ apportSollicite: v, montantsDetails: withDetail(projet, "apportSollicite", d) })}
+        />
+        <MontantField
+          label="Apport autres bailleurs"
+          value={projet.apportAutresBailleurs}
+          detail={detailFor(projet, "apportAutresBailleurs")}
+          deviseCibleDefaut={projet.deviseLocale}
+          onChange={(v, d) => set({ apportAutresBailleurs: v, montantsDetails: withDetail(projet, "apportAutresBailleurs", d) })}
+        />
+        <SelectField label="Devise locale" value={projet.deviseLocale ?? ""} options={DEVISES} onChange={(v) => set({ deviseLocale: v })} />
         <div className="flex items-center justify-between border-t border-ink-200 pt-3">
           <span className="text-sm font-semibold text-ink-600">Total</span>
           <span className="text-lg font-extrabold text-ink-900">{formatMontant(total, dev)}</span>
@@ -795,11 +957,44 @@ const DEFAULT_PROTOCOLE: EtapeProtocole[] = [
 ];
 
 function DecisionsTab({ projet, set }: { projet: ProjetType; set: Setter }) {
-  const dev = projet.devise || "EUR";
   const decision = projet.decisionCpd ?? "En instruction";
   const protocole = projet.protocole ?? DEFAULT_PROTOCOLE;
   const updateProto = (id: string, patch: Partial<EtapeProtocole>) =>
     set({ protocole: protocole.map((p) => (p.id === id ? { ...p, ...patch } : p)) });
+
+  const versements = projet.versementsPlanifies ?? [];
+  const addVersement = () =>
+    set({
+      versementsPlanifies: [
+        ...versements,
+        { id: uid(), date: "", montant: 0, taux: 0, frais: 0, deviseBase: "Euro", deviseCible: projet.deviseLocale ?? "Ariary malgache" },
+      ],
+    });
+  const updateVersement = (id: string, patch: Partial<VersementPlanifie>) =>
+    set({ versementsPlanifies: versements.map((v) => (v.id === id ? { ...v, ...patch } : v)) });
+  const removeVersement = (id: string) =>
+    set({ versementsPlanifies: versements.filter((v) => v.id !== id) });
+  const creerPlanifications = () => {
+    const n = projet.nbVersementsAnnuel ?? 0;
+    if (n <= 0) return;
+    const base = projet.montantAlloueCpd ?? projet.montantAlloue ?? 0;
+    const part = Math.round((base / n) * 100) / 100;
+    const today = new Date();
+    const nouveaux: VersementPlanifie[] = Array.from({ length: n }, (_, i) => {
+      const d = new Date(today.getFullYear(), today.getMonth() + i * Math.round(12 / n), today.getDate());
+      return {
+        id: uid(),
+        date: d.toISOString().slice(0, 10),
+        montant: part,
+        taux: 0,
+        frais: 0,
+        deviseBase: "Euro",
+        deviseCible: projet.deviseLocale ?? "Ariary malgache",
+      };
+    });
+    set({ versementsPlanifies: nouveaux });
+  };
+
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
@@ -827,12 +1022,35 @@ function DecisionsTab({ projet, set }: { projet: ProjetType; set: Setter }) {
         </div>
 
         <div className="card space-y-3 p-5">
-          <NumField label={`Montant alloué par la CPD (${dev})`} value={projet.montantAlloueCpd} onChange={(v) => set({ montantAlloueCpd: v })} />
-          <NumField label={`Apport du partenaire (${dev})`} value={projet.apportPartenaire} onChange={(v) => set({ apportPartenaire: v })} />
-          <NumField label={`Apport d'autres bailleurs (${dev})`} value={projet.apportAutresBailleurs} onChange={(v) => set({ apportAutresBailleurs: v })} />
-          <hr className="border-ink-200" />
-          <p className="label">Versement</p>
-          <div className="flex gap-4">
+          <MontantField
+            label="Montant alloué par la CPD"
+            value={projet.montantAlloueCpd}
+            detail={detailFor(projet, "montantAlloueCpd")}
+            deviseCibleDefaut={projet.deviseLocale}
+            onChange={(v, d) => set({ montantAlloueCpd: v, montantsDetails: withDetail(projet, "montantAlloueCpd", d) })}
+          />
+          <MontantField
+            label="Apport du partenaire"
+            value={projet.apportPartenaire}
+            detail={detailFor(projet, "apportPartenaire")}
+            deviseCibleDefaut={projet.deviseLocale}
+            onChange={(v, d) => set({ apportPartenaire: v, montantsDetails: withDetail(projet, "apportPartenaire", d) })}
+          />
+          <MontantField
+            label="Apport d'autres bailleurs"
+            value={projet.apportAutresBailleurs}
+            detail={detailFor(projet, "apportAutresBailleurs")}
+            deviseCibleDefaut={projet.deviseLocale}
+            onChange={(v, d) => set({ apportAutresBailleurs: v, montantsDetails: withDetail(projet, "apportAutresBailleurs", d) })}
+          />
+          <SelectField label="Devise locale" value={projet.deviseLocale ?? ""} options={DEVISES} onChange={(v) => set({ deviseLocale: v })} />
+        </div>
+      </div>
+
+      <div className="card space-y-4 p-5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-sm font-semibold text-ink-700">Versement</p>
+          <div className="flex items-center gap-4">
             <label className="flex items-center gap-2 text-sm font-medium text-ink-700">
               <input type="radio" name="versementType" checked={!projet.versementRecurrent} onChange={() => set({ versementRecurrent: false })} className="h-4 w-4" /> Normal
             </label>
@@ -840,9 +1058,77 @@ function DecisionsTab({ projet, set }: { projet: ProjetType; set: Setter }) {
               <input type="radio" name="versementType" checked={!!projet.versementRecurrent} onChange={() => set({ versementRecurrent: true })} className="h-4 w-4" /> Récurrent
             </label>
           </div>
-          <NumField label="Nombre de versements annuel" value={projet.nbVersementsAnnuel} onChange={(v) => set({ nbVersementsAnnuel: v })} className="input max-w-[120px]" />
-          <button className="btn-outline w-full justify-center">Créer les prochaines planifications</button>
         </div>
+
+        <div className="flex flex-wrap items-end gap-3">
+          <NumField label="Nombre de versements annuel" value={projet.nbVersementsAnnuel} onChange={(v) => set({ nbVersementsAnnuel: v })} className="input max-w-[120px]" />
+          <button className="btn-outline" onClick={creerPlanifications}>Créer les prochaines planifications</button>
+        </div>
+
+        <div>
+          <div className="mb-2 flex items-center justify-between">
+            <p className="label mb-0">Dates de versement planifiées</p>
+            <button className="btn-outline px-2 py-1" onClick={addVersement} title="Ajouter une échéance">
+              <Plus className="h-4 w-4" /> Ajouter
+            </button>
+          </div>
+          <div className="overflow-x-auto rounded-xl border border-ink-200">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-ink-200 bg-ink-50 text-left text-xs font-bold uppercase tracking-wide text-ink-500">
+                  <th className="px-3 py-2">Date du versement</th>
+                  <th className="px-3 py-2">Montant (taux de change)</th>
+                  <th className="w-12 px-3 py-2 text-center">–</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-ink-100">
+                {versements.map((v) => (
+                  <tr key={v.id} className="align-middle">
+                    <td className="px-2 py-1.5">
+                      <input type="date" className="input" value={v.date} onChange={(e) => updateVersement(v.id, { date: e.target.value })} />
+                    </td>
+                    <td className="px-2 py-1.5">
+                      <MontantField
+                        label=""
+                        value={v.montant}
+                        detail={{ date: v.date, taux: v.taux, frais: v.frais, deviseBase: v.deviseBase, deviseCible: v.deviseCible }}
+                        deviseCibleDefaut={projet.deviseLocale}
+                        onChange={(val, d) =>
+                          updateVersement(v.id, {
+                            montant: val ?? 0,
+                            taux: d.taux,
+                            frais: d.frais,
+                            deviseBase: d.deviseBase,
+                            deviseCible: d.deviseCible,
+                          })
+                        }
+                      />
+                    </td>
+                    <td className="px-2 py-1.5 text-center">
+                      <button onClick={() => removeVersement(v.id)} className="rounded p-1.5 text-ink-400 hover:bg-rose-50 hover:text-rose-600" title="Retirer">
+                        <Minus className="h-4 w-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {versements.length === 0 && (
+                  <tr>
+                    <td colSpan={3} className="px-3 py-5 text-center text-ink-400">
+                      Aucune échéance planifiée. Cliquez « Ajouter » ou « Créer les prochaines planifications ».
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <AreaField
+          label="Conditions pour le prochain versement"
+          value={projet.conditionProchainVersement ?? ""}
+          onChange={(v) => set({ conditionProchainVersement: v })}
+          minH="min-h-[80px]"
+        />
       </div>
 
       <div className="card p-5">
