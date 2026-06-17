@@ -525,6 +525,12 @@ export const projets: Projet[] = [
       { id: "c3", date: "2024-09-20", type: "E-mail", objet: "Accusé de réception du 1er versement", auteur: "LLB Madagascar" },
       { id: "c4", date: "2025-03-10", type: "Réunion", objet: "Point d'avancement à mi-parcours (visio)", auteur: "Chargé de suivi" },
     ],
+    suiviEvenements: [
+      { id: "se1", date: "2026-01-22", type: "Versement", infos: "7916.00 EUR", commentaire: "5000 euros trimestriel + 2920 euros ajout ponctuel" },
+      { id: "se2", date: "2026-03-13", type: "Versement", infos: "5395.00 EUR", commentaire: "" },
+    ],
+    projetTermine: false,
+    dateDebutRealisee: "2024-09-15",
   },
   {
     id: "prj-dg2134",

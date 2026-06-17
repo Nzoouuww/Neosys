@@ -162,6 +162,11 @@ export interface Projet {
 
   // --- Onglet Correspondance ---
   correspondances?: Correspondance[];
+
+  // --- Onglet Suivi ---
+  suiviEvenements?: SuiviEvenement[];
+  projetTermine?: boolean;
+  dateDebutRealisee?: string;
 }
 
 export interface Correspondance {
@@ -170,6 +175,16 @@ export interface Correspondance {
   type: "Courrier" | "E-mail" | "Appel" | "Réunion";
   objet: string;
   auteur: string;
+}
+
+export type TypeEvenementSuivi = "Versement" | "Rapport" | "Visite" | "Évaluation";
+
+export interface SuiviEvenement {
+  id: string;
+  date: string;
+  type: TypeEvenementSuivi;
+  infos: string;
+  commentaire: string;
 }
 
 export type StatutDocument = "Brouillon" | "Généré" | "Validé" | "Envoyé";
