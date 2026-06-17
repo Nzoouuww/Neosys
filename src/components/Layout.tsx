@@ -1,32 +1,28 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import {
-  LayoutDashboard,
-  Building2,
+  Home,
   FolderKanban,
-  FileText,
-  Users,
+  MapPin,
   BarChart3,
+  Image,
   ListChecks,
-  Settings,
   Search,
   Bell,
   Plus,
   HeartHandshake,
   ChevronDown,
+  Lock,
 } from "lucide-react";
 
+// Colonne de gauche fidèle à Néosys d'origine.
+// Seuls « Projet » et « Stats » sont fonctionnels dans le prototype.
 const nav = [
-  { to: "/", label: "Tableau de bord", icon: LayoutDashboard, end: true },
-  { to: "/partenaires", label: "Partenaires", icon: Building2 },
-  { to: "/projets", label: "Projets", icon: FolderKanban },
-  { to: "/documents", label: "Documents", icon: FileText },
-  { to: "/personnes", label: "Personnes", icon: Users },
-  { to: "/statistiques", label: "Statistiques", icon: BarChart3 },
-];
-
-const navConfig = [
-  { to: "/ameliorations", label: "Suivi des améliorations", icon: ListChecks },
+  { to: "/accueil", label: "Accueil", icon: Home, actif: false },
+  { to: "/projet", label: "Projet", icon: FolderKanban, actif: true },
+  { to: "/adresse", label: "Adresse", icon: MapPin, actif: false },
+  { to: "/statistiques", label: "Stats", icon: BarChart3, actif: true },
+  { to: "/transfert-photo", label: "Transfert photo", icon: Image, actif: false },
 ];
 
 function SidebarLink({
@@ -34,12 +30,26 @@ function SidebarLink({
   label,
   icon: Icon,
   end,
+  actif = true,
 }: {
   to: string;
   label: string;
-  icon: typeof LayoutDashboard;
+  icon: typeof Home;
   end?: boolean;
+  actif?: boolean;
 }) {
+  if (!actif) {
+    return (
+      <div
+        title="Module non disponible dans le prototype"
+        className="flex cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-ink-300"
+      >
+        <Icon className="h-[18px] w-[18px]" />
+        {label}
+        <Lock className="ml-auto h-3.5 w-3.5" />
+      </div>
+    );
+  }
   return (
     <NavLink
       to={to}
@@ -78,19 +88,16 @@ export default function Layout() {
 
         <nav className="flex-1 space-y-1 overflow-y-auto p-3">
           <p className="px-3 pb-1 pt-2 text-[11px] font-bold uppercase tracking-wider text-ink-400">
-            Pilotage
+            Menu
           </p>
           {nav.map((n) => (
             <SidebarLink key={n.to} {...n} />
           ))}
 
           <p className="px-3 pb-1 pt-5 text-[11px] font-bold uppercase tracking-wider text-ink-400">
-            Configuration
+            Prototype
           </p>
-          {navConfig.map((n) => (
-            <SidebarLink key={n.to} {...n} />
-          ))}
-          <SidebarLink to="/parametres" label="Paramètres" icon={Settings} />
+          <SidebarLink to="/ameliorations" label="Suivi des améliorations" icon={ListChecks} />
         </nav>
 
         <div className="border-t border-ink-200 p-3">

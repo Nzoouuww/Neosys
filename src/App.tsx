@@ -1,4 +1,4 @@
-import { HashRouter, Routes, Route } from "react-router-dom";
+import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
 import Partenaires from "./pages/Partenaires";
@@ -8,6 +8,7 @@ import ProjetDetail from "./pages/ProjetDetail";
 import Documents from "./pages/Documents";
 import Personnes from "./pages/Personnes";
 import Statistiques from "./pages/Statistiques";
+import Projet from "./pages/Projet";
 import Ameliorations from "./pages/Ameliorations";
 import Parametres from "./pages/Parametres";
 
@@ -16,7 +17,9 @@ export default function App() {
     <HashRouter>
       <Routes>
         <Route element={<Layout />}>
-          <Route index element={<Dashboard />} />
+          <Route index element={<Navigate to="/projet" replace />} />
+          <Route path="projet" element={<Projet />} />
+          <Route path="tableau-de-bord" element={<Dashboard />} />
           <Route path="partenaires" element={<Partenaires />} />
           <Route path="partenaires/:id" element={<PartenaireDetail />} />
           <Route path="projets" element={<Projets />} />
