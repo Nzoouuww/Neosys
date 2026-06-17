@@ -8,6 +8,7 @@ import ProjetDetail from "./pages/ProjetDetail";
 import Documents from "./pages/Documents";
 import Personnes from "./pages/Personnes";
 import Statistiques from "./pages/Statistiques";
+import Ameliorations from "./pages/Ameliorations";
 import Parametres from "./pages/Parametres";
 
 export default function App() {
@@ -23,6 +24,7 @@ export default function App() {
           <Route path="documents" element={<Documents />} />
           <Route path="personnes" element={<Personnes />} />
           <Route path="statistiques" element={<Statistiques />} />
+          <Route path="ameliorations" element={<Ameliorations />} />
           <Route path="parametres" element={<Parametres />} />
         </Route>
       </Routes>

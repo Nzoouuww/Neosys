@@ -7,6 +7,7 @@ import {
   FileText,
   Users,
   BarChart3,
+  ListChecks,
   Settings,
   Search,
   Bell,
@@ -22,6 +23,10 @@ const nav = [
   { to: "/documents", label: "Documents", icon: FileText },
   { to: "/personnes", label: "Personnes", icon: Users },
   { to: "/statistiques", label: "Statistiques", icon: BarChart3 },
+];
+
+const navConfig = [
+  { to: "/ameliorations", label: "Suivi des améliorations", icon: ListChecks },
 ];
 
 function SidebarLink({
@@ -82,6 +87,9 @@ export default function Layout() {
           <p className="px-3 pb-1 pt-5 text-[11px] font-bold uppercase tracking-wider text-ink-400">
             Configuration
           </p>
+          {navConfig.map((n) => (
+            <SidebarLink key={n.to} {...n} />
+          ))}
           <SidebarLink to="/parametres" label="Paramètres" icon={Settings} />
         </nav>
 
