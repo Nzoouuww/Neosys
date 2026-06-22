@@ -30,6 +30,19 @@ export const organisations: Organisation[] = [
       codePostal: "101",
       pays: "Madagascar",
     },
+    adressePostale: "BP 4085 ANTANANARIVO 101",
+    adressePhysique: "ANTANANARIVO 101",
+    telephone: "",
+    email: "flambeaulb@gmail.com",
+    president: { nom: "Monsieur RAFALIMANANA CAMILLE", telephone: "", email: "camillerafalimanana@yahoo.fr" },
+    responsableProjet: { nom: "Madame Ramilijaona Minah", telephone: "", email: "minahrafalimanana@yahoo.fr" },
+    infoBancaire: {
+      numCompte: "MG4600008000140507400071241",
+      titulaire: "Ligue pour la Lecture de la Bible",
+      devise: "MGA",
+      banque: "BFV Société Générale (BFV SG) – Domiciliation DIGUE (00014) – Antananarivo",
+      swift: "BFAVMGMG",
+    },
     membres: [
       {
         id: "m1",

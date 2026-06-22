@@ -50,6 +50,20 @@ export interface Adresse {
   pays: string;
 }
 
+export interface Contact {
+  nom: string;
+  telephone?: string;
+  email?: string;
+}
+
+export interface InfoBancaire {
+  numCompte?: string;
+  titulaire?: string;
+  devise?: string;
+  banque?: string;
+  swift?: string;
+}
+
 export interface Organisation {
   id: string;
   sigle: string;
@@ -63,6 +77,14 @@ export interface Organisation {
   description: string;
   siteWeb?: string;
   adresse: Adresse;
+  // --- Coordonnées pour la fiche CPD ---
+  adressePostale?: string;
+  adressePhysique?: string;
+  telephone?: string;
+  email?: string;
+  president?: Contact;
+  responsableProjet?: Contact;
+  infoBancaire?: InfoBancaire;
   membres: Membre[];
   secteurs: Secteur[];
   noteFiabilite: number; // 0-5

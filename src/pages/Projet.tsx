@@ -1256,6 +1256,47 @@ function DocumentsTab({ org, projet }: { org: Organisation; projet: ProjetType }
   );
 }
 
+/* En-tête de section (bandeau à droite, comme le formulaire officiel). */
+function FSection({ title }: { title: string }) {
+  return (
+    <div className="mt-3 border border-ink-900 bg-ink-100 px-2 py-1 text-right text-sm font-extrabold uppercase tracking-wide text-ink-900">
+      {title}
+    </div>
+  );
+}
+
+/* Ligne libellé (gris) + valeur, bordée. */
+function FRow({
+  label,
+  children,
+  labelW = "w-48",
+}: {
+  label: string;
+  children: ReactNode;
+  labelW?: string;
+}) {
+  return (
+    <div className="flex border-x border-b border-ink-400">
+      <div className={`${labelW} shrink-0 border-r border-ink-400 bg-ink-50 px-2 py-1 text-right text-[11px] font-semibold leading-tight text-ink-700`}>
+        {label}
+      </div>
+      <div className="flex-1 whitespace-pre-wrap px-2 py-1 text-[12px] leading-snug text-ink-900">{children}</div>
+    </div>
+  );
+}
+
+function FinLine({ label, eur, loc, codeLocale }: { label: string; eur: number; loc: number; codeLocale: string }) {
+  return (
+    <div className="flex border-x border-b border-ink-400 text-[12px]">
+      <div className="w-48 shrink-0 border-r border-ink-400 bg-ink-50 px-2 py-1 text-right font-semibold text-ink-700">{label}</div>
+      <div className="flex-1 border-r border-ink-400 px-2 py-1 text-right tabular-nums">{fmtNb(eur)}</div>
+      <div className="w-14 shrink-0 border-r border-ink-400 px-2 py-1 font-semibold text-ink-500">EUR</div>
+      <div className="flex-1 border-r border-ink-400 px-2 py-1 text-right tabular-nums">{loc ? fmtNb(loc) : ""}</div>
+      <div className="w-16 shrink-0 px-2 py-1 font-semibold text-ink-500">{codeLocale}</div>
+    </div>
+  );
+}
+
 function FicheCpdPreview({
   org,
   projet,
@@ -1265,65 +1306,117 @@ function FicheCpdPreview({
   projet: ProjetType;
   onClose: () => void;
 }) {
-  const datesCpd = (projet.protocole ?? []).filter((p) => p.afficherCpd && p.date);
-  const dev = projet.devise || "EUR";
+  const codeLocale = projet.deviseLocale || org.infoBancaire?.devise || "MGA";
+  const tauxOf = (key: string) => projet.montantsDetails?.[key]?.taux ?? 0;
+  const ap = projet.apportPartenaire ?? 0;
+  const asel = projet.apportSollicite ?? 0;
+  const aautres = projet.apportAutresBailleurs ?? 0;
+  const totalEur = ap + asel + aautres;
+  const apL = ap * tauxOf("apportPartenaire");
+  const aselL = asel * tauxOf("apportSollicite");
+  const aautresL = aautres * tauxOf("apportAutresBailleurs");
+  const totalL = apL + aselL + aautresL;
+  const decision = projet.decisionCpd === "Accepté" ? "OUI" : projet.decisionCpd === "Refusé" ? "NON" : null;
+
   return (
     <div className="card overflow-hidden">
-      <div className="flex items-center justify-between border-b border-ink-200 bg-ink-50 px-5 py-3">
+      <div className="flex items-center justify-between border-b border-ink-200 bg-ink-50 px-5 py-3 print:hidden">
         <span className="flex items-center gap-2 text-sm font-semibold text-ink-800">
-          <FileBarChart className="h-4 w-4 text-brand-600" /> Fiche projet (CPD) — aperçu
+          <FileBarChart className="h-4 w-4 text-brand-600" /> Fiche projet (CPD) — aperçu généré
         </span>
-        <button className="btn-outline" onClick={onClose}><X className="h-4 w-4" /> Fermer</button>
-      </div>
-      <div className="mx-auto max-w-3xl space-y-5 p-8">
-        <div className="border-b border-ink-200 pb-4 text-center">
-          <p className="text-xs font-bold uppercase tracking-widest text-ink-400">Fiche projet — Commission Partenariat & Développement</p>
-          <h3 className="mt-1 text-xl font-extrabold text-ink-900">{projet.titre}</h3>
-          <p className="mt-1 font-mono text-sm text-ink-500">{org.paysIso} · {org.sigle} · {projet.code}</p>
-        </div>
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          <FicheLine label="Organisation porteuse" value={org.libelle} />
-          <FicheLine label="Pays" value={projet.pays} />
-          <FicheLine label="Ville / région" value={`${projet.ville}${projet.region ? `, ${projet.region}` : ""}`} />
-          <FicheLine label="Coordinateur" value={projet.coordinateur} />
-          <FicheLine label="Bénéficiaires" value={projet.nbBeneficiaires.toLocaleString("fr-FR")} />
-          <FicheLine label="Montant alloué (CPD)" value={formatMontant(projet.montantAlloueCpd ?? projet.montantAlloue, dev)} />
-        </div>
-        {projet.objectifs && (
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wide text-ink-400">Objectifs</p>
-            <p className="mt-1 text-sm leading-relaxed text-ink-700">{projet.objectifs}</p>
-          </div>
-        )}
-        <div>
-          <p className="text-xs font-bold uppercase tracking-wide text-ink-400">Dates clés du protocole</p>
-          {datesCpd.length === 0 ? (
-            <p className="mt-1 text-sm italic text-ink-400">
-              Aucune date sélectionnée. Cochez « Afficher sur la fiche CPD » dans l'onglet Décisions.
-            </p>
-          ) : (
-            <table className="mt-2 w-full text-sm">
-              <tbody className="divide-y divide-ink-100">
-                {datesCpd.map((p) => (
-                  <tr key={p.id}>
-                    <td className="py-1.5 text-ink-600">{p.label}</td>
-                    <td className="py-1.5 text-right font-semibold tabular-nums text-ink-800">{formatDate(p.date!)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+        <div className="flex gap-2">
+          <button className="btn-outline" onClick={() => window.print()}><FileText className="h-4 w-4" /> Imprimer / PDF</button>
+          <button className="btn-outline" onClick={onClose}><X className="h-4 w-4" /> Fermer</button>
         </div>
       </div>
-    </div>
-  );
-}
 
-function FicheLine({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <p className="text-xs font-bold uppercase tracking-wide text-ink-400">{label}</p>
-      <p className="mt-0.5 font-semibold text-ink-800">{value}</p>
+      <div id="cpd-print" className="mx-auto max-w-3xl bg-white p-6 text-ink-900">
+        {/* En-tête */}
+        <div className="flex items-start justify-between text-[11px] text-ink-600">
+          <span>Service d'Entraide et de Liaison</span>
+          <span>SOUMISSION D'UNE DEMANDE — En date du : {projet.dateSoumissionCpd ? formatDate(projet.dateSoumissionCpd) : "……………"}</span>
+        </div>
+        <h3 className="mt-3 text-lg font-extrabold uppercase tracking-tight">La Commission des Projets de Développement</h3>
+        <div className="mt-1 flex w-fit border border-ink-900">
+          <span className="border-r border-ink-900 bg-ink-100 px-3 py-1 text-sm font-extrabold uppercase">Code projet</span>
+          <span className="px-4 py-1 text-sm font-bold">{projet.code}</span>
+        </div>
+
+        {/* LE CONTEXTE */}
+        <FSection title="Le contexte et les bénéficiaires" />
+        <div className="border-t border-ink-400">
+          <FRow label="Pays :"><span className="font-bold uppercase">{projet.pays}</span></FRow>
+          <FRow label="La ville (le village) et sa région :">{projet.ville}{projet.region ? `, Région ${projet.region}` : ""}</FRow>
+          <FRow label="Description sommaire du milieu :">{projet.milieu ?? ""}</FRow>
+          <FRow label="Qualité des bénéficiaires :">{projet.profilBeneficiaires ?? ""}</FRow>
+          <FRow label="Nombre :">{projet.nbBeneficiaires.toLocaleString("fr-FR")}</FRow>
+          <FRow label="Non discrimination :">{projet.respectNonDiscrimination ? "☑" : "☐"}</FRow>
+        </div>
+
+        {/* LE PROJET */}
+        <FSection title="Le projet" />
+        <div className="border-t border-ink-400">
+          <FRow label="Titre :"><span className="font-bold">{projet.titre}</span></FRow>
+          <FRow label="Objectif :">{projet.objectifs ?? ""}</FRow>
+          <FRow label="Activité :">{projet.activites ?? ""}</FRow>
+          <FRow label="Moyens humains :">{projet.moyensHumains ?? ""}</FRow>
+          <FRow label="Moyens matériels :">{projet.moyensMateriels ?? ""}</FRow>
+        </div>
+        <div className="mt-0 border-t border-ink-400">
+          <div className="flex border-x border-b border-ink-400 bg-ink-50 text-[11px] font-bold text-ink-600">
+            <div className="w-48 shrink-0 border-r border-ink-400 px-2 py-1 text-right">Moyens financiers :</div>
+            <div className="flex-1" />
+          </div>
+          <FinLine label="apport du partenaire :" eur={ap} loc={apL} codeLocale={codeLocale} />
+          <FinLine label="apport bailleur(s) :" eur={aautres} loc={aautresL} codeLocale={codeLocale} />
+          <FinLine label="apport S.E.L. :" eur={asel} loc={aselL} codeLocale={codeLocale} />
+          <div className="flex border-x border-b border-ink-400 text-[12px] font-extrabold">
+            <div className="w-48 shrink-0 border-r border-ink-400 bg-ink-100 px-2 py-1 text-right">TOTAL :</div>
+            <div className="flex-1 border-r border-ink-400 px-2 py-1 text-right tabular-nums">{fmtNb(totalEur)}</div>
+            <div className="w-14 shrink-0 border-r border-ink-400 px-2 py-1 text-ink-500">EUR</div>
+            <div className="flex-1 border-r border-ink-400 px-2 py-1 text-right tabular-nums">{totalL ? fmtNb(totalL) : ""}</div>
+            <div className="w-16 shrink-0 px-2 py-1 text-ink-500">{codeLocale}</div>
+          </div>
+          <FRow label="Calendrier :">Début : {projet.dateDebut ? formatDate(projet.dateDebut) : "……"}     Fin : {projet.dateFin ? formatDate(projet.dateFin) : "……"}</FRow>
+          <FRow label="Autonomie :">{projet.composanteAutonome ? "☑" : "☐"}  aucune</FRow>
+        </div>
+
+        {/* LE PORTEUR */}
+        <FSection title="Le porteur" />
+        <div className="border-t border-ink-400">
+          <div className="flex border-x border-b border-ink-400">
+            <div className="w-48 shrink-0 border-r border-ink-400 bg-ink-50 px-2 py-1 text-right text-[11px] font-semibold text-ink-700">L'association :</div>
+            <div className="w-24 shrink-0 border-r border-ink-400 px-2 py-1 text-[12px] font-bold">{org.sigle}</div>
+            <div className="flex-1 px-2 py-1 text-[12px]">{org.libelle}</div>
+          </div>
+          <FRow label="Adresse postale :">{org.adressePostale ?? ""}</FRow>
+          <FRow label="Adresse physique :">{org.adressePhysique ?? ""}</FRow>
+          <FRow label="Tél., email, web :">{[org.telephone, org.email, org.siteWeb].filter(Boolean).join(" — ")}</FRow>
+          <FRow label="Le président — Nom :">{org.president?.nom ?? ""}</FRow>
+          <FRow label="Tél. et email :">{[org.president?.telephone, org.president?.email].filter(Boolean).join(" — ")}</FRow>
+          <FRow label="Le responsable du projet — Nom :">{org.responsableProjet?.nom ?? projet.coordinateur}</FRow>
+          <FRow label="Tél. et email :">{[org.responsableProjet?.telephone, org.responsableProjet?.email].filter(Boolean).join(" — ")}</FRow>
+          <FRow label="Information bancaire — Num de compte :">{org.infoBancaire?.numCompte ?? ""}</FRow>
+          <FRow label="Titulaire du compte :">{org.infoBancaire?.titulaire ?? ""}</FRow>
+          <FRow label="Devise du compte :">{org.infoBancaire?.devise ?? ""}</FRow>
+          <FRow label="Nom et adresse de la banque :">{org.infoBancaire?.banque ?? ""}</FRow>
+          <FRow label="Code SWIFT :">{org.infoBancaire?.swift ?? ""}</FRow>
+          <FRow label="Historique / recommandations :">{projet.historiqueRecommandations ?? ""}</FRow>
+        </div>
+
+        {/* Décision */}
+        <div className="mt-3 w-fit border border-ink-900">
+          <div className="flex">
+            <span className="border-r border-ink-900 bg-ink-100 px-3 py-1 text-[12px] font-extrabold uppercase">Décision CPD</span>
+            <span className={`border-r border-ink-900 px-6 py-1 text-[12px] font-bold ${decision === "OUI" ? "bg-emerald-100 text-emerald-800" : ""}`}>OUI</span>
+            <span className={`px-6 py-1 text-[12px] font-bold ${decision === "NON" ? "bg-rose-100 text-rose-800" : ""}`}>NON</span>
+          </div>
+          <div className="flex border-t border-ink-900">
+            <span className="border-r border-ink-900 bg-ink-100 px-3 py-1 text-[12px] font-extrabold uppercase">Montant alloué</span>
+            <span className="px-4 py-1 text-[12px] font-bold tabular-nums">{fmtNb(projet.montantAlloueCpd ?? 0)} {projet.devise || "EUR"}</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

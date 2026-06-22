@@ -42,6 +42,24 @@
   }
 }
 
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #cpd-print,
+  #cpd-print * {
+    visibility: visible;
+  }
+  #cpd-print {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    max-width: none;
+    padding: 0;
+  }
+}
+
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
