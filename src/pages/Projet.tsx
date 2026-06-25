@@ -26,6 +26,7 @@ import { Badge } from "../components/Badge";
 import { Accordion } from "../components/Accordion";
 import { organisations, projets as projetsSeed, documents, getOrganisation, SEL_INFO } from "../data/mockData";
 import { formatMontant, formatDate } from "../lib/format";
+import RappelsView from "./RappelsView";
 import type {
   EtapeProjet,
   Organisation,
@@ -46,6 +47,7 @@ const TOP_TABS = [
   "Versements à venir",
   "Suivi des projets",
   "Statistiques",
+  "Rappels",
 ] as const;
 type TopTab = (typeof TOP_TABS)[number];
 
@@ -131,7 +133,7 @@ export default function Projet() {
 
       <div className="mb-4 flex flex-wrap gap-1 rounded-xl bg-white p-1 shadow-card ring-1 ring-ink-200">
         {TOP_TABS.map((t) => {
-          const needsProjet = t !== "Org. porteuse" && t !== "Statistiques";
+          const needsProjet = t !== "Org. porteuse" && t !== "Statistiques" && t !== "Rappels";
           const disabled = needsProjet && !projet;
           return (
             <button
@@ -192,6 +194,17 @@ export default function Projet() {
         ))}
 
       {tab === "Statistiques" && <StatsView projets={projets} />}
+
+      {tab === "Rappels" && (
+        <RappelsView
+          projets={projets}
+          onOpen={(oId, pId) => {
+            setOrgId(oId);
+            setProjetId(pId);
+            setTab("Projet");
+          }}
+        />
+      )}
     </div>
   );
 }
