@@ -7,6 +7,17 @@ import type {
 } from "./types";
 
 // ---------------------------------------------------------------------------
+// Le SEL (organisme financeur) — identique pour tous les projets.
+// ---------------------------------------------------------------------------
+export const SEL_INFO = {
+  nom: "Service d'Entraide et de Liaison (SEL)",
+  sigle: "SEL",
+  siege: "157 rue des Blains, 92220 BAGNEUX-FRA",
+  representant: "Mme Isabelle DUVAL",
+  fonction: "Directrice des projets",
+};
+
+// ---------------------------------------------------------------------------
 // Organisations porteuses (partenaires) — inspired by the Neosys partner list.
 // ---------------------------------------------------------------------------
 export const organisations: Organisation[] = [
@@ -34,8 +45,8 @@ export const organisations: Organisation[] = [
     adressePhysique: "ANTANANARIVO 101",
     telephone: "",
     email: "flambeaulb@gmail.com",
-    president: { nom: "Monsieur RAFALIMANANA CAMILLE", telephone: "", email: "camillerafalimanana@yahoo.fr" },
-    responsableProjet: { nom: "Madame Ramilijaona Minah", telephone: "", email: "minahrafalimanana@yahoo.fr" },
+    president: { nom: "Monsieur RAFALIMANANA CAMILLE", fonction: "Directeur", telephone: "", email: "camillerafalimanana@yahoo.fr" },
+    responsableProjet: { nom: "Madame Ramilijaona Minah", fonction: "Responsable du projet", telephone: "", email: "minahrafalimanana@yahoo.fr" },
     infoBancaire: {
       numCompte: "MG4600008000140507400071241",
       titulaire: "Ligue pour la Lecture de la Bible",
@@ -537,6 +548,13 @@ export const projets: Projet[] = [
       { id: "vp2", date: "2026-12-15", montant: 5000, taux: 4800, frais: 0, deviseBase: "Euro", deviseCible: "Ariary malgache" },
     ],
     conditionProchainVersement: "Réception du rapport intermédiaire et des justificatifs de dépenses du trimestre précédent.",
+    referenceSel: "DT2617_MDG_LLB",
+    dateRapportIntermediaire: "2027-07-01",
+    dateRapportFinal: "2028-06-30",
+    nbVersementsProtocole: 3,
+    lieuEtablissement: "Bagneux",
+    dateEtablissementProtocole: "2026-05-22",
+    autorisationDiffusionPhotos: true,
     montantsDetails: {
       apportPartenaire: { taux: 4800, frais: 0, deviseBase: "Euro", deviseCible: "Ariary malgache" },
       apportSollicite: { taux: 4800, frais: 0, deviseBase: "Euro", deviseCible: "Ariary malgache" },

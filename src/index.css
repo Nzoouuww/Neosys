@@ -46,11 +46,11 @@
   body * {
     visibility: hidden;
   }
-  #cpd-print,
-  #cpd-print * {
+  #doc-print,
+  #doc-print * {
     visibility: visible;
   }
-  #cpd-print {
+  #doc-print {
     position: absolute;
     left: 0;
     top: 0;

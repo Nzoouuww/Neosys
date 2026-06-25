@@ -52,6 +52,7 @@ export interface Adresse {
 
 export interface Contact {
   nom: string;
+  fonction?: string;
   telephone?: string;
   email?: string;
 }
@@ -192,6 +193,15 @@ export interface Projet {
 
   // --- Onglet Décisions : suivi du protocole ---
   protocole?: EtapeProtocole[];
+
+  // --- Protocole d'accord (document généré) ---
+  referenceSel?: string;
+  dateRapportIntermediaire?: string;
+  dateRapportFinal?: string;
+  nbVersementsProtocole?: number;
+  lieuEtablissement?: string;
+  dateEtablissementProtocole?: string;
+  autorisationDiffusionPhotos?: boolean;
 
   // --- Onglet Suivi ---
   suiviEvenements?: SuiviEvenement[];

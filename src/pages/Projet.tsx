@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { Badge } from "../components/Badge";
 import { Accordion } from "../components/Accordion";
-import { organisations, projets as projetsSeed, documents, getOrganisation } from "../data/mockData";
+import { organisations, projets as projetsSeed, documents, getOrganisation, SEL_INFO } from "../data/mockData";
 import { formatMontant, formatDate } from "../lib/format";
 import type {
   EtapeProjet,
@@ -1246,7 +1246,8 @@ function DocumentsTab({ org, projet }: { org: Organisation; projet: ProjetType }
       </div>
 
       {preview === "cpd" && <FicheCpdPreview org={org} projet={projet} onClose={() => setPreview(null)} />}
-      {preview && preview !== "cpd" && (
+      {preview === "protocole" && <ProtocoleAccordPreview org={org} projet={projet} onClose={() => setPreview(null)} />}
+      {preview && preview !== "cpd" && preview !== "protocole" && (
         <div className="card flex items-center justify-between p-5 text-sm text-ink-500">
           <span>Aperçu « {boutons.find((b) => b.id === preview)?.label} » — gabarit à définir avec votre équipe.</span>
           <button className="btn-outline" onClick={() => setPreview(null)}>Fermer</button>
@@ -1330,7 +1331,7 @@ function FicheCpdPreview({
         </div>
       </div>
 
-      <div id="cpd-print" className="mx-auto max-w-3xl bg-white p-6 text-ink-900">
+      <div id="doc-print" className="mx-auto max-w-3xl bg-white p-6 text-ink-900">
         {/* En-tête */}
         <div className="flex items-start justify-between text-[11px] text-ink-600">
           <span>Service d'Entraide et de Liaison</span>
@@ -1414,6 +1415,126 @@ function FicheCpdPreview({
           <div className="flex border-t border-ink-900">
             <span className="border-r border-ink-900 bg-ink-100 px-3 py-1 text-[12px] font-extrabold uppercase">Montant alloué</span>
             <span className="px-4 py-1 text-[12px] font-bold tabular-nums">{fmtNb(projet.montantAlloueCpd ?? 0)} {projet.devise || "EUR"}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* Paragraphe de document. */
+function DP({ children, className = "" }: { children: ReactNode; className?: string }) {
+  return <p className={`text-[13px] leading-relaxed text-ink-800 ${className}`}>{children}</p>;
+}
+
+function ProtocoleAccordPreview({
+  org,
+  projet,
+  onClose,
+}: {
+  org: Organisation;
+  projet: ProjetType;
+  onClose: () => void;
+}) {
+  const sigle = org.sigle;
+  const reference = projet.referenceSel || `${projet.code}_${projet.paysIso}_${org.sigle}`;
+  const apportPartenaire = projet.apportPartenaire ?? 0;
+  const apportAutres = projet.apportAutresBailleurs ?? 0;
+  const montantTransfert = projet.apportSollicite ?? projet.montantAlloueCpd ?? 0;
+  const nbVersements = projet.nbVersementsProtocole ?? projet.versementsPlanifies?.length ?? 1;
+  const bank = org.infoBancaire;
+  const fmtD = (d?: string) => (d ? formatDate(d) : "……………");
+
+  return (
+    <div className="card overflow-hidden">
+      <div className="flex items-center justify-between border-b border-ink-200 bg-ink-50 px-5 py-3 print:hidden">
+        <span className="flex items-center gap-2 text-sm font-semibold text-ink-800">
+          <FileSignature className="h-4 w-4 text-brand-600" /> Protocole d'accord — aperçu généré
+        </span>
+        <div className="flex gap-2">
+          <button className="btn-outline" onClick={() => window.print()}><FileText className="h-4 w-4" /> Imprimer / PDF</button>
+          <button className="btn-outline" onClick={onClose}><X className="h-4 w-4" /> Fermer</button>
+        </div>
+      </div>
+
+      <div id="doc-print" className="mx-auto max-w-3xl space-y-3 bg-white px-10 py-8 text-ink-900">
+        <p className="text-center text-lg font-extrabold italic tracking-wide text-emerald-700">PROTOCOLE D'ACCORD</p>
+
+        <DP>Il est établi entre les deux parties en présence :</DP>
+        <DP>d'une part,</DP>
+        <DP className="font-bold">{SEL_INFO.nom}</DP>
+        <DP>dont le siège se trouve : {SEL_INFO.siege}</DP>
+        <DP>représenté par {SEL_INFO.representant}, {SEL_INFO.fonction}</DP>
+        <DP>d'autre part,</DP>
+        <DP className="font-bold">{org.libelle} ({sigle})</DP>
+        <DP>dont le siège se trouve : {[org.adressePostale, `${org.adresse.ville} ${org.adresse.codePostal}`.trim(), org.paysIso].filter(Boolean).join(", ")}</DP>
+        <DP>représenté par {org.president?.nom ?? "……"}{org.president?.fonction ? `, ${org.president.fonction}` : ""}</DP>
+
+        <DP className="pt-2">Un engagement de partenariat pour le projet :</DP>
+        <DP className="font-bold">« {projet.titre} »</DP>
+        <DP className="italic">Référence SEL : {reference}</DP>
+
+        <DP>Rappel du projet initié par {sigle} :</DP>
+        <DP>Les objectifs sont :</DP>
+        <DP className="italic">{projet.objectifs ?? ""}</DP>
+        <DP>Les activités sont :</DP>
+        <DP className="whitespace-pre-line italic">{projet.activites ?? ""}</DP>
+
+        <DP>Budget prévisionnel adopté par les parties : Voir page(s) suivante(s).</DP>
+        <hr className="border-ink-300" />
+        <DP>Il est convenu ce qui suit :</DP>
+
+        <DP className="font-bold">{sigle} s'engage envers le SEL à :</DP>
+        <ul className="list-none space-y-1 pl-2 text-[13px] leading-relaxed text-ink-800">
+          <li>- Prévenir le SEL du commencement du projet dans les deux semaines qui suivent.</li>
+          <li>- Envoyer un rapport intermédiaire pour le {fmtD(projet.dateRapportIntermediaire)}, d'après le canevas du SEL.</li>
+          <li>- Envoyer un rapport final pour le {fmtD(projet.dateRapportFinal)}, d'après le canevas du SEL.</li>
+          <li>- Envoyer des photos des activités réalisées et des personnes concernées (séparément des rapports et dans leur résolution d'origine).</li>
+        </ul>
+        {projet.autorisationDiffusionPhotos && (
+          <DP>{sigle} autorise la diffusion et la publication des photos et témoignages des bénéficiaires du projet, de quelque nature qu'ils soient, sur quelque support que ce soit, recueillis à l'occasion des activités financées par le SEL.</DP>
+        )}
+
+        <DP className="font-bold">Le SEL s'engage envers {sigle} à :</DP>
+        <ul className="list-none space-y-1 pl-2 text-[13px] leading-relaxed text-ink-800">
+          <li>- Faire parvenir les fonds prévus sur le compte indiqué ci-après.</li>
+          <li>- Transmettre les informations reçues de {sigle} à ceux qui ont à cœur, ou sont susceptibles, de soutenir son travail par leurs prières et par leurs dons.</li>
+          <li>- Appuyer {sigle} et ceux qui sont impliqués dans ce projet par des conseils et des avis, si cela s'avère nécessaire et dans la limite des capacités du SEL.</li>
+        </ul>
+
+        <DP><span className="font-bold">Recommandations</span> : {projet.descriptionRecommandation || "Assurer l'implication des bénéficiaires et leur donner la possibilité, à n'importe quel stade du projet, de faire des remarques positives ou négatives sur celui-ci."}</DP>
+        <hr className="border-ink-300" />
+
+        <DP><span className="font-bold">Retards, annulations, modifications :</span> Les parties conviennent qu'en cas de retard dans l'exécution, {sigle} s'engage à le signaler aussitôt, et tant que la réalisation du projet est arrêtée, il s'engage à placer le montant de la subvention non utilisée dans un compte d'épargne. SEL France s'engage à rechercher avec {sigle} les meilleures solutions de relance. Si le projet ne peut pas être poursuivi dans sa forme proposée, ou si {sigle} est obligé pour quelque raison que ce soit d'arrêter définitivement le projet, SEL France s'engage à rechercher avec {sigle} des solutions alternatives pour l'utilisation du reliquat. Il est expressément convenu que ce reliquat ne peut pas être affecté à un autre projet ou programme sans l'accord du SEL. En cas de modification du projet engendrant une modification de plus de 10 % d'une rubrique budgétaire, une consultation préalable du SEL est indispensable.</DP>
+
+        <DP><span className="font-bold">Suivi :</span> Étant entendu que le projet pourra être visité par un représentant du SEL, il conviendra de tenir à disposition les justificatifs et factures attestant de l'utilisation des fonds conformément au projet soumis au SEL et pour lequel il y a eu accord.</DP>
+
+        <DP>{sigle} informera le SEL des financements obtenus auprès d'autres bailleurs et pour le même projet. Il conviendra avec le SEL de la solution à adopter en cas de double financement, total ou partiel. Il est entendu que {sigle} et la communauté locale apporteront au projet {fmtNb(apportPartenaire)} EUR, en apport financier ou en valorisé. Un autre bailleur est sollicité sur ce projet à hauteur de {fmtNb(apportAutres)} EUR.</DP>
+
+        <DP>Si une telle procédure est agréée et rejoint le consentement de {sigle}, le protocole entre les deux parties prend effet à la signature dudit protocole et le transfert de {fmtNb(montantTransfert)} EUR sera réalisé aussitôt que possible en {nbVersements} versement(s).</DP>
+
+        <DP>Si un quelconque désaccord devait survenir en cours de réalisation du projet, les deux parties se rapprocheront pour rechercher activement la solution du contentieux par le recours à la médiation d'une institution chrétienne agréée par les 2 parties.</DP>
+
+        <DP>Le versement se fera sur le compte de {sigle} dont les coordonnées bancaires sont :</DP>
+        <div className="text-[13px] leading-relaxed text-ink-800">
+          <p>N° DE COMPTE : {bank?.numCompte ?? ""}</p>
+          <p>TITULAIRE DU COMPTE ET COORDONNÉES : {bank?.titulaire ?? ""}{org.adresse.ville ? `  ${org.adresse.ville.toUpperCase()}` : ""}</p>
+          <p>NOM de la BANQUE : {bank?.banque ?? ""}</p>
+          <p>CODE SWIFT : {bank?.swift ?? ""}</p>
+        </div>
+
+        <DP className="pt-2">Établi en deux exemplaires originaux à {projet.lieuEtablissement || "……"} le {fmtD(projet.dateEtablissementProtocole)}.</DP>
+
+        <div className="grid grid-cols-2 gap-6 pt-6 text-[13px]">
+          <div>
+            <p className="font-bold">Le SEL</p>
+            <p className="mt-8">{SEL_INFO.representant}</p>
+            <p className="text-ink-500">{SEL_INFO.fonction}</p>
+          </div>
+          <div>
+            <p className="font-bold">{sigle}</p>
+            <p className="mt-8">{org.president?.nom ?? ""}</p>
+            <p className="text-ink-500">{org.president?.fonction ?? ""}</p>
           </div>
         </div>
       </div>
