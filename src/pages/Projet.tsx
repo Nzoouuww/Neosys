@@ -1395,6 +1395,12 @@ function FicheCpdPreview({
   const aselL = asel * tauxOf("apportSollicite");
   const aautresL = aautres * tauxOf("apportAutresBailleurs");
   const totalL = apL + aselL + aautresL;
+  const versementsPlan = projet.versementsPlanifies ?? [];
+  const nbVersementsPlan = projet.nbVersementsPlanifies ?? versementsPlan.length;
+  const datesVersements = versementsPlan
+    .filter((v) => v.date)
+    .map((v) => formatDate(v.date))
+    .join(" · ");
   const decision = projet.decisionCpd === "Accepté" ? "OUI" : projet.decisionCpd === "Refusé" ? "NON" : null;
 
   return (
@@ -1457,7 +1463,8 @@ function FicheCpdPreview({
             <div className="w-16 shrink-0 px-2 py-1 text-ink-500">{codeLocale}</div>
           </div>
           <FRow label="Calendrier :">Début : {projet.dateDebut ? formatDate(projet.dateDebut) : "……"}     Fin : {projet.dateFin ? formatDate(projet.dateFin) : "……"}</FRow>
-          <FRow label="Autonomie :">{projet.composanteAutonome ? "☑" : "☐"}  aucune</FRow>
+          <FRow label="Versements planifiés :">{nbVersementsPlan ? `${nbVersementsPlan} versement(s)` : "—"}</FRow>
+          <FRow label="Dates des versements :">{datesVersements || "……………"}</FRow>
         </div>
 
         {/* LE PORTEUR */}
