@@ -1640,6 +1640,7 @@ function ProtocoleAccordPreview({
 function SuiviTab({ projet, set }: { projet: ProjetType; set: Setter }) {
   const events = projet.suiviEvenements ?? [];
   const dev = projet.devise || "EUR";
+  const [commentEditId, setCommentEditId] = useState<string | null>(null);
 
   const addEvent = (type: TypeEvenementSuivi) => {
     const ev: SuiviEvenement = {
@@ -1706,7 +1707,14 @@ function SuiviTab({ projet, set }: { projet: ProjetType; set: Setter }) {
                     <input className="input" value={e.infos} onChange={(ev) => updateEvent(e.id, { infos: ev.target.value })} placeholder="ex. 7916.00 EUR" />
                   </td>
                   <td className="px-2 py-1.5">
-                    <input className="input" value={e.commentaire} onChange={(ev) => updateEvent(e.id, { commentaire: ev.target.value })} />
+                    <button
+                      type="button"
+                      onClick={() => setCommentEditId(e.id)}
+                      title="Cliquez pour modifier / ajouter des infos supplémentaires"
+                      className="min-h-[38px] w-full whitespace-pre-wrap break-words rounded-lg border border-ink-200 px-2 py-1.5 text-left text-sm hover:border-brand-300 hover:bg-brand-50/50"
+                    >
+                      {e.commentaire ? e.commentaire : <span className="text-ink-400">Ajouter un commentaire…</span>}
+                    </button>
                   </td>
                   <td className="px-2 py-1.5 text-center">
                     <button onClick={() => removeEvent(e.id)} className="rounded p-1.5 text-ink-400 hover:bg-rose-50 hover:text-rose-600" title="Supprimer">
@@ -1740,6 +1748,61 @@ function SuiviTab({ projet, set }: { projet: ProjetType; set: Setter }) {
         <div className="card p-5">
           <p className="label">Date de début de projet réalisée</p>
           <input type="date" className="input" value={projet.dateDebutRealisee ?? ""} onChange={(e) => set({ dateDebutRealisee: e.target.value })} />
+        </div>
+      </div>
+
+      {commentEditId && (() => {
+        const ev = events.find((x) => x.id === commentEditId);
+        if (!ev) return null;
+        return (
+          <CommentaireEditor
+            evenement={ev}
+            onChange={(patch) => updateEvent(ev.id, patch)}
+            onClose={() => setCommentEditId(null)}
+          />
+        );
+      })()}
+    </div>
+  );
+}
+
+/* Popup d'édition du commentaire / infos supplémentaires d'un événement de suivi. */
+function CommentaireEditor({
+  evenement,
+  onChange,
+  onClose,
+}: {
+  evenement: SuiviEvenement;
+  onChange: (patch: Partial<SuiviEvenement>) => void;
+  onClose: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink-900/40 p-4" onClick={onClose}>
+      <div className="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between border-b border-ink-200 bg-ink-50 px-5 py-3">
+          <span className="text-sm font-bold text-ink-800">{evenement.type} — commentaire</span>
+          <button onClick={onClose} className="rounded p-1 text-ink-400 hover:bg-ink-100 hover:text-ink-700">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        <div className="space-y-3 p-5">
+          <div>
+            <p className="label">Infos sur l'événement</p>
+            <input className="input" value={evenement.infos} onChange={(e) => onChange({ infos: e.target.value })} placeholder="ex. 7916.00 EUR" />
+          </div>
+          <div>
+            <p className="label">Commentaire / informations supplémentaires</p>
+            <textarea
+              autoFocus
+              className="input min-h-[160px] resize-y leading-relaxed"
+              value={evenement.commentaire}
+              onChange={(e) => onChange({ commentaire: e.target.value })}
+              placeholder="Saisissez ici toutes les informations utiles…"
+            />
+          </div>
+        </div>
+        <div className="flex justify-end gap-2 border-t border-ink-200 bg-ink-50 px-5 py-3">
+          <button className="btn-primary" onClick={onClose}><Save className="h-4 w-4" /> Terminé</button>
         </div>
       </div>
     </div>
