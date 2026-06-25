@@ -567,8 +567,8 @@ export const projets: Projet[] = [
       { id: "c4", date: "2025-03-10", type: "Réunion", objet: "Point d'avancement à mi-parcours (visio)", auteur: "Chargé de suivi" },
     ],
     protocole: [
-      { id: "pr1", label: "Rapport intermédiaire", date: "2025-06-30", afficherCpd: true },
-      { id: "pr2", label: "Rapport final", date: "", afficherCpd: false },
+      { id: "pr1", label: "Rapport intermédiaire", date: "2027-07-01", afficherCpd: true },
+      { id: "pr2", label: "Rapport final", date: "2028-06-30", afficherCpd: true },
       { id: "pr3", label: "Envoi de la décision CPD", date: "2024-06-03", afficherCpd: true },
       { id: "pr4", label: "Réception du protocole signé (OP)", date: "2024-07-15", afficherCpd: false },
       { id: "pr5", label: "Envoi du protocole (proposition)", date: "2024-06-20", afficherCpd: true },

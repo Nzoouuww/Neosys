@@ -1444,6 +1444,10 @@ function ProtocoleAccordPreview({
   const nbVersements = projet.nbVersementsProtocole ?? projet.versementsPlanifies?.length ?? 1;
   const bank = org.infoBancaire;
   const fmtD = (d?: string) => (d ? formatDate(d) : "……………");
+  // Les dates de rapports proviennent de Décisions → « Suivi du protocole ».
+  const dateEtape = (motif: RegExp) => projet.protocole?.find((p) => motif.test(p.label))?.date;
+  const dateRapportInterm = dateEtape(/interm/i) || projet.dateRapportIntermediaire;
+  const dateRapportFinal = dateEtape(/final/i) || projet.dateRapportFinal;
 
   return (
     <div className="card overflow-hidden">
@@ -1487,8 +1491,8 @@ function ProtocoleAccordPreview({
         <DP className="font-bold">{sigle} s'engage envers le SEL à :</DP>
         <ul className="list-none space-y-1 pl-2 text-[13px] leading-relaxed text-ink-800">
           <li>- Prévenir le SEL du commencement du projet dans les deux semaines qui suivent.</li>
-          <li>- Envoyer un rapport intermédiaire pour le {fmtD(projet.dateRapportIntermediaire)}, d'après le canevas du SEL.</li>
-          <li>- Envoyer un rapport final pour le {fmtD(projet.dateRapportFinal)}, d'après le canevas du SEL.</li>
+          <li>- Envoyer un rapport intermédiaire pour le {fmtD(dateRapportInterm)}, d'après le canevas du SEL.</li>
+          <li>- Envoyer un rapport final pour le {fmtD(dateRapportFinal)}, d'après le canevas du SEL.</li>
           <li>- Envoyer des photos des activités réalisées et des personnes concernées (séparément des rapports et dans leur résolution d'origine).</li>
         </ul>
         {projet.autorisationDiffusionPhotos && (
