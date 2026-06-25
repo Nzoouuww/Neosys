@@ -156,6 +156,7 @@ export interface Projet {
   classementOcde?: string;
   classementPnud?: string;
   classementSel?: string;
+  classementsSelSupp?: string[]; // types SEL additionnels (ex. Eau + Impulsion économique)
   composanteAutonome?: boolean;
   debutDesFinancement?: boolean;
   dateDebutRealisation?: string;

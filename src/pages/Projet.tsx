@@ -944,24 +944,66 @@ function DescriptionTab({ projet, set }: { projet: ProjetType; set: Setter }) {
       />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <SelectField label="Classement COCODEV" value={projet.classementCocodev ?? ""} options={OPTS_COCODEV} onChange={(v) => set({ classementCocodev: v })} />
-        <div className="flex items-end pb-2">
-          <CheckRow label="Composante autonome" checked={!!projet.composanteAutonome} onChange={(v) => set({ composanteAutonome: v })} />
-        </div>
         <SelectField label="Classement OCDE" value={projet.classementOcde ?? ""} options={OPTS_OCDE} onChange={(v) => set({ classementOcde: v })} />
-        <div className="flex items-end pb-2">
-          <CheckRow label="Début dès que le financement commence" checked={!!projet.debutDesFinancement} onChange={(v) => set({ debutDesFinancement: v })} />
-        </div>
         <SelectField label="Classement PNUD" value={projet.classementPnud ?? ""} options={OPTS_PNUD} onChange={(v) => set({ classementPnud: v })} />
         <div>
           <p className="label">Date de début de réalisation prévue</p>
           <input type="date" className="input" value={projet.dateDebutRealisation ?? ""} onChange={(e) => set({ dateDebutRealisation: e.target.value })} />
         </div>
-        <SelectField label="Classement SEL" value={projet.classementSel ?? ""} options={OPTS_SEL} onChange={(v) => set({ classementSel: v })} />
+        <ClassementSelField projet={projet} set={set} />
         <div>
           <p className="label">Date de fin de réalisation prévue</p>
           <input type="date" className="input" value={projet.dateFinRealisation ?? ""} onChange={(e) => set({ dateFinRealisation: e.target.value })} />
         </div>
       </div>
+    </div>
+  );
+}
+
+/* Classement SEL avec possibilité d'ajouter plusieurs types (ex. Eau + Impulsion économique). */
+function ClassementSelField({ projet, set }: { projet: ProjetType; set: Setter }) {
+  const supp = projet.classementsSelSupp ?? [];
+  const updateSupp = (i: number, v: string) =>
+    set({ classementsSelSupp: supp.map((s, idx) => (idx === i ? v : s)) });
+  const addSupp = () => set({ classementsSelSupp: [...supp, ""] });
+  const removeSupp = (i: number) => set({ classementsSelSupp: supp.filter((_, idx) => idx !== i) });
+  return (
+    <div>
+      <p className="label">Classement SEL</p>
+      <div className="flex items-center gap-2">
+        <select className="input flex-1" value={projet.classementSel ?? ""} onChange={(e) => set({ classementSel: e.target.value })}>
+          <option value="">—</option>
+          {OPTS_SEL.map((o) => (
+            <option key={o} value={o}>{o}</option>
+          ))}
+        </select>
+        <button
+          type="button"
+          onClick={addSupp}
+          title="Ajouter un type de classement SEL"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-brand-300 bg-brand-50 text-brand-700 hover:bg-brand-100"
+        >
+          <Plus className="h-4 w-4" />
+        </button>
+      </div>
+      {supp.map((s, i) => (
+        <div key={i} className="mt-2 flex items-center gap-2">
+          <select className="input flex-1" value={s} onChange={(e) => updateSupp(i, e.target.value)}>
+            <option value="">—</option>
+            {OPTS_SEL.map((o) => (
+              <option key={o} value={o}>{o}</option>
+            ))}
+          </select>
+          <button
+            type="button"
+            onClick={() => removeSupp(i)}
+            title="Retirer ce type"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
+      ))}
     </div>
   );
 }
