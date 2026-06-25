@@ -1395,11 +1395,16 @@ function FicheCpdPreview({
   const aselL = asel * tauxOf("apportSollicite");
   const aautresL = aautres * tauxOf("apportAutresBailleurs");
   const totalL = apL + aselL + aautresL;
-  const versementsPlan = projet.versementsPlanifies ?? [];
-  const nbVersementsPlan = projet.nbVersementsPlanifies ?? versementsPlan.length;
-  const datesVersements = versementsPlan
-    .filter((v) => v.date)
-    .map((v) => formatDate(v.date))
+  const nbVersementsPlan = projet.nbVersementsPlanifies ?? 0;
+  const datesVersements = Array.from(
+    new Set(
+      ["apportPartenaire", "apportSollicite", "apportAutresBailleurs"]
+        .map((key) => detailFor(projet, key)?.date)
+        .filter((d): d is string => !!d),
+    ),
+  )
+    .sort()
+    .map((d) => formatDate(d))
     .join(" · ");
   const decision = projet.decisionCpd === "Accepté" ? "OUI" : projet.decisionCpd === "Refusé" ? "NON" : null;
 
