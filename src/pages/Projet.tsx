@@ -811,6 +811,9 @@ function MontantField({
 }) {
   const [open, setOpen] = useState(false);
   const base = detail?.deviseBase ?? "EUR";
+  const cible = detail?.deviseCible ?? deviseCibleDefaut ?? "";
+  const taux = detail?.taux ?? 0;
+  const converti = value != null && taux ? value * taux - (detail?.frais ?? 0) : null;
   return (
     <div>
       {label && <p className="label">{label}</p>}
@@ -823,9 +826,28 @@ function MontantField({
           {value != null ? `${fmtNb(value)} ${base}` : "—"}
         </span>
         <span className="flex items-center gap-1.5 text-xs text-ink-400">
-          {detail?.taux ? `× ${fmtNb(detail.taux)}` : ""}
+          {taux ? `× ${fmtNb(taux)}` : ""}
           <Pencil className="h-3.5 w-3.5" />
         </span>
+      </button>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        title="Cliquez pour saisir le taux de change"
+        className={`mt-1 flex w-full items-center justify-between rounded-lg px-3 py-1.5 text-left text-xs transition-colors ${
+          converti != null
+            ? "bg-emerald-50 text-emerald-800 ring-1 ring-inset ring-emerald-600/20 hover:bg-emerald-100"
+            : "bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-500/20 hover:bg-amber-100"
+        }`}
+      >
+        {converti != null ? (
+          <>
+            <span className="font-semibold tabular-nums">= {fmtNb(converti)} {cible || "(devise locale)"}</span>
+            <span className="text-[10px] uppercase tracking-wide opacity-70">taux {fmtNb(taux)}</span>
+          </>
+        ) : (
+          <span className="font-medium">Saisir le taux de change{cible ? ` (→ ${cible})` : ""}</span>
+        )}
       </button>
       {open && (
         <MontantEditor
@@ -948,6 +970,14 @@ function DescriptionTab({ projet, set }: { projet: ProjetType; set: Setter }) {
 function MoyensTab({ projet, set }: { projet: ProjetType; set: Setter }) {
   const dev = projet.devise || "EUR";
   const total = (projet.apportPartenaire ?? 0) + (projet.apportSollicite ?? 0) + (projet.apportAutresBailleurs ?? 0);
+  const localOf = (key: string, val: number | undefined) => {
+    const d = detailFor(projet, key);
+    return d?.taux ? (val ?? 0) * d.taux - (d.frais ?? 0) : 0;
+  };
+  const totalLocal =
+    localOf("apportPartenaire", projet.apportPartenaire) +
+    localOf("apportSollicite", projet.apportSollicite) +
+    localOf("apportAutresBailleurs", projet.apportAutresBailleurs);
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
       <div className="card space-y-4 p-5 lg:col-span-2">
@@ -985,6 +1015,12 @@ function MoyensTab({ projet, set }: { projet: ProjetType; set: Setter }) {
           <span className="text-sm font-semibold text-ink-600">Total</span>
           <span className="text-lg font-extrabold text-ink-900">{formatMontant(total, dev)}</span>
         </div>
+        {projet.deviseLocale && (
+          <div className="flex items-center justify-between rounded-lg bg-emerald-50 px-3 py-2 ring-1 ring-inset ring-emerald-600/20">
+            <span className="text-xs font-semibold text-emerald-700">Total en devise locale</span>
+            <span className="text-sm font-extrabold tabular-nums text-emerald-800">{fmtNb(totalLocal)} {projet.deviseLocale}</span>
+          </div>
+        )}
       </div>
     </div>
   );
